@@ -27,7 +27,7 @@ export default function LayoutHome() {
             <Header /> {/* Componente del encabezado */}
             
             {/* Contenedor de las tarjetas de Pokémon */}
-            <div className={css.pokemonContainer}>
+            <div className={css.card_content}>
                 {arrayPokemon.map((card, index) => (
                     <Card key={index} card={card} /> // Renderizamos cada tarjeta
                 ))}
