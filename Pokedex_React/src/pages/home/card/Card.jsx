@@ -126,15 +126,15 @@ export default function Card({ card }) {
                 </div>
 
                 {/* Evoluciones */}
-                <div>
-                    <h4>Evoluciones:</h4>
-                    {evoluciones.map((evo) => (
-                        <div key={evo.id}>
-                            <img src={evo.image} alt={evo.name} />
-                            <p>{evo.name}</p>
-                        </div>
-                    ))}
-                </div>
+<div className={css.div_evolucion}>
+    
+    {evoluciones.map((evo) => (
+        <div key={evo.id} className={css.item_evo}>
+            <img src={evo.image} alt={evo.name} />
+            <p>{evo.name}</p>
+        </div>
+    ))}
+</div>
             </div>
         </div>
     );
