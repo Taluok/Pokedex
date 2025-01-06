@@ -1,10 +1,54 @@
-.card_content{
+.card_content {
     width: 1400px;
     max-width: calc(100% - 30px);
     margin: 0 auto;
-
     display: grid;
-    grid-template-columns:  repeat(auto-fill, minmax(250px, 1fr));
-    grid-gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px; /* Cambié grid-gap por gap, que es el estándar actual */
     padding-bottom: 30px;
+}
+
+.section_pagination {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0; /* Corregido el margen */
+}
+
+.div_pagination {
+    width: auto;
+    background-color: #5865f2;
+    display: flex;
+    border-radius: 8px;
+}
+
+.div_pagination .item_izquierdo,
+.div_pagination .item_derecho {
+    background-color: #5865f2;
+    height: 30px;
+    width: 30px;
+    color: white;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Añadido para una mejor experiencia */
+}
+
+.div_pagination .item_izquierdo:hover,
+.div_pagination .item_derecho:hover {
+    align-items: center; // Alinea las imágenes verticalmente
+    background-color: #4754c7; /* Color más oscuro al hacer hover */
+}
+
+.div_pagination .item {
+    color: white;
+    height: 30px;
+    width: 40px;
+    display: grid;
+    place-items: center;
+    background-color: #424242;
+    transition: background-color 0.3s ease; /* Transición añadida */
+}
+
+.div_pagination .item:hover {
+    background-color: #333333; /* Cambia de color al hacer hover */
 }
