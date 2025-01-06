@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types'; // Importamos PropTypes
+import PropTypes from 'prop-types'; 
 import css from './card.module.scss';
 import axios from 'axios';
 import { URL_ESPECIES, URL_POKEMON } from '../../../api/apiRest';
 
 export default function Card({ card }) {
     const [itemPokemon, setItemPokemon] = useState(null); // Datos básicos del Pokémon
-    const [speciesData, setSpeciesData] = useState(null); // Datos de la especie del Pokémon
+    const [especiePokemon, setSpeciesData] = useState(null); // Datos de la especie del Pokémon
     const [error, setError] = useState(null); // Manejo de errores
 
     // Primer useEffect: Obtiene los datos básicos del Pokémon
@@ -47,10 +47,20 @@ export default function Card({ card }) {
         return <p>{error}</p>; // Mostramos un mensaje de error si ocurre
     }
 
-    if (!itemPokemon || !speciesData) {
+    if (!itemPokemon || !especiePokemon) {
         return <p>Cargando...</p>; // Mostramos un estado de carga mientras esperamos los datos
     }
 
+    //Me aseguro que el id del pokemon tenga 3 digitos
+
+    let pokeId = itemPokemon?.id?.toString();
+
+    if(pokeId.length === 1){
+        pokeId = "00" + pokeId;
+    } else if(pokeId.length === 2){
+        pokeId = "0" + pokeId;
+    }
+    // cada tipo de Pokémon tiene un estilo único basado en su tipo
     return (
         <div className={css.card}>
             <img
@@ -58,10 +68,8 @@ export default function Card({ card }) {
                 src={itemPokemon.sprites?.other['official-artwork']?.front_default}
                 alt={itemPokemon.name}
             />
-            <div className={css.sub_card}>
-                <strong className={css.id_card}>
-                    #{String(itemPokemon.id).padStart(3, '0')}
-                </strong>
+            <div className={`bg-${especiePokemon?.color?.name} ${css.sub_card}`}>
+                <strong className={css.id_card}>#{String(pokeId).padStart(3, '0')}</strong>
                 <br />
                 <strong className={css.name_card}>{itemPokemon.name}</strong>
                 <h4 className={css.altura_poke}>Altura: {itemPokemon.height / 10} m</h4>
@@ -70,11 +78,32 @@ export default function Card({ card }) {
                     Habilidad: {itemPokemon.abilities[0]?.ability?.name || "Desconocida"}
                 </h4>
                 <h4 className={css.species}>
-                    Color: {speciesData.color?.name || "Desconocido"}
+                    Color: {especiePokemon.color?.name || "Desconocido"}
                 </h4>
                 <h4 className={css.species}>
-                    Habitat: {speciesData.habitat?.name || "Desconocido"}
+                    Habitat: {especiePokemon.habitat?.name || "Desconocido"}
                 </h4>
+
+                <div>
+                    {itemPokemon?.stats?.map((sta, index) => {
+                        return(
+                            <h6 key={index}>
+                                <span className={css.name}>{sta.stat.name} className={css.item_start}</span>
+                                <progress value={sta.base_stat} max={110}>
+
+                                </progress>
+                                <span className={css.numero}>{sta.base_stat}</span>
+                            </h6>
+                        )
+                    })}
+                </div>
+                <div className={css.div_type_color}>
+                    {itemPokemon?.types?.map((ti, index) => {
+                        return(
+                            <h6 key={index} className={`color-${ti.type.name} ${css.color_type}`}>{" "}{ti.type.name}</h6>
+                        ) 
+                    })}
+                </div>
             </div>
         </div>
     );
