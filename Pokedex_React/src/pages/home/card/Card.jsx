@@ -6,10 +6,11 @@ import { URL_ESPECIES, URL_POKEMON } from '../../../api/apiRest';
 
 export default function Card({ card }) {
     const [itemPokemon, setItemPokemon] = useState(null); // Datos básicos del Pokémon
-    const [especiePokemon, setSpeciesData] = useState(null); // Datos de la especie del Pokémon
+    const [especiePokemon, setEspeciePokemon] = useState(null); // Datos de la especie del Pokémon
+    const [evoluciones, setEvoluciones] = useState([]); // Lista de evoluciones
     const [error, setError] = useState(null); // Manejo de errores
 
-    // Primer useEffect: Obtiene los datos básicos del Pokémon
+    // Obtener datos básicos del Pokémon
     useEffect(() => {
         const fetchPokemonData = async () => {
             try {
@@ -26,41 +27,61 @@ export default function Card({ card }) {
         }
     }, [card]);
 
-    // Segundo useEffect: Obtiene los datos de la especie del Pokémon
+    // Obtener datos de la especie del Pokémon y su cadena de evolución
     useEffect(() => {
-        const fetchSpeciesData = async () => {
+        const fetchSpeciesAndEvolution = async () => {
             try {
-                const response = await axios.get(`${URL_ESPECIES}/${card.name}`);
-                setSpeciesData(response.data);
+                // Obtener datos de la especie
+                const responseSpecies = await axios.get(`${URL_ESPECIES}/${card.name}`);
+                setEspeciePokemon(responseSpecies.data);
+
+                // Obtener datos de la cadena de evolución
+                const evolutionChainUrl = responseSpecies.data?.evolution_chain?.url;
+                if (evolutionChainUrl) {
+                    const responseEvolution = await axios.get(evolutionChainUrl);
+                    const chain = responseEvolution.data?.chain;
+
+                    // Procesar la cadena de evolución
+                    const evolutionsArray = [];
+                    let currentEvolution = chain;
+
+                    while (currentEvolution) {
+                        const pokemonName = currentEvolution.species.name;
+                        const id = currentEvolution.species.url.split('/').slice(-2, -1)[0];
+
+                        // Obtener imagen del Pokémon
+                        const imageResponse = await axios.get(`${URL_POKEMON}/${id}`);
+                        const image = imageResponse.data?.sprites?.other['official-artwork']?.front_default;
+
+                        evolutionsArray.push({ name: pokemonName, id, image });
+                        currentEvolution = currentEvolution.evolves_to[0]; // Siguiente evolución
+                    }
+
+                    setEvoluciones(evolutionsArray);
+                }
             } catch (err) {
-                setError("Error al cargar los datos de la especie");
+                setError("Error al cargar los datos de la especie o evolución");
                 console.error(err);
             }
         };
 
         if (card?.name) {
-            fetchSpeciesData();
+            fetchSpeciesAndEvolution();
         }
     }, [card]);
 
     if (error) {
-        return <p>{error}</p>; // Mostramos un mensaje de error si ocurre
+        return <p>{error}</p>; // Mostrar mensaje de error
     }
 
     if (!itemPokemon || !especiePokemon) {
-        return <p>Cargando...</p>; // Mostramos un estado de carga mientras esperamos los datos
+        return <p>Cargando...</p>; // Mostrar estado de carga
     }
 
-    //Me aseguro que el id del pokemon tenga 3 digitos
+    // Asegurar que el ID del Pokémon tenga 3 dígitos
+    const formatPokeId = (id) => id.toString().padStart(3, '0');
+    const pokeId = formatPokeId(itemPokemon.id);
 
-    let pokeId = itemPokemon?.id?.toString();
-
-    if(pokeId.length === 1){
-        pokeId = "00" + pokeId;
-    } else if(pokeId.length === 2){
-        pokeId = "0" + pokeId;
-    }
-    // cada tipo de Pokémon tiene un estilo único basado en su tipo
     return (
         <div className={css.card}>
             <img
@@ -68,8 +89,8 @@ export default function Card({ card }) {
                 src={itemPokemon.sprites?.other['official-artwork']?.front_default}
                 alt={itemPokemon.name}
             />
-            <div className={`bg-${especiePokemon?.color?.name} ${css.sub_card}`}>
-                <strong className={css.id_card}>#{String(pokeId).padStart(3, '0')}</strong>
+            <div className={`bg-${especiePokemon.color?.name} ${css.sub_card}`}>
+                <strong className={css.id_card}>#{pokeId}</strong>
                 <br />
                 <strong className={css.name_card}>{itemPokemon.name}</strong>
                 <h4 className={css.altura_poke}>Altura: {itemPokemon.height / 10} m</h4>
@@ -81,28 +102,38 @@ export default function Card({ card }) {
                     Color: {especiePokemon.color?.name || "Desconocido"}
                 </h4>
                 <h4 className={css.species}>
-                    Habitat: {especiePokemon.habitat?.name || "Desconocido"}
+                    Hábitat: {especiePokemon.habitat?.name || "Desconocido"}
                 </h4>
 
+                {/* Estadísticas */}
                 <div>
-                    {itemPokemon?.stats?.map((sta, index) => {
-                        return(
-                            <h6 key={index}>
-                                <span className={css.name}>{sta.stat.name} className={css.item_start}</span>
-                                <progress value={sta.base_stat} max={110}>
-
-                                </progress>
-                                <span className={css.numero}>{sta.base_stat}</span>
-                            </h6>
-                        )
-                    })}
+                    {itemPokemon?.stats?.map((stat, index) => (
+                        <h6 key={index}>
+                            <span className={css.name}>{stat.stat.name}</span>
+                            <progress value={stat.base_stat} max={110}></progress>
+                            <span className={css.numero}>{stat.base_stat}</span>
+                        </h6>
+                    ))}
                 </div>
+
+                {/* Tipos */}
                 <div className={css.div_type_color}>
-                    {itemPokemon?.types?.map((ti, index) => {
-                        return(
-                            <h6 key={index} className={`color-${ti.type.name} ${css.color_type}`}>{" "}{ti.type.name}</h6>
-                        ) 
-                    })}
+                    {itemPokemon?.types?.map((type, index) => (
+                        <h6 key={index} className={`color-${type.type.name} ${css.color_type}`}>
+                            {type.type.name}
+                        </h6>
+                    ))}
+                </div>
+
+                {/* Evoluciones */}
+                <div>
+                    <h4>Evoluciones:</h4>
+                    {evoluciones.map((evo) => (
+                        <div key={evo.id}>
+                            <img src={evo.image} alt={evo.name} />
+                            <p>{evo.name}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
