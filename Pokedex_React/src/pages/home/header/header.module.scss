@@ -14,5 +14,28 @@
                 width: 120px;
             }
         }
+
+        .div_search{
+            width: 30%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            >div{
+                width: 20%;
+                background-color: rgb(31, 134, 237);
+                height: 30px;
+                display: grid;
+                place-items: center;
+                color: white;
+            }
+            >input{
+                width: 80%;
+                padding: 4px 10px;
+                height: 30px;
+                border: none;
+                outline: none;
+            }
+        }
     }
 }

@@ -6,39 +6,50 @@ import { URL_POKEMON } from "../../../api/apiRest";
 import Card from "../card/Card";
 
 export default function LayoutHome() {
-    const [arrayPokemon, setArrayPokemon] = useState([]); // Estado para almacenar la lista de Pokémon
-    const [xpage, setXpage] = useState(1); // Estado para almacenar la página actual
+    const [arrayPokemon, setArrayPokemon] = useState([]); // Lista de Pokémon
+    const [xpage, setXpage] = useState(1); // Página actual
+    const [search, setSearch] = useState(""); // Texto de búsqueda
 
     useEffect(() => {
-        // Función para obtener los datos de la API
         const fetchPokemonData = async () => {
-            const limit = 15; // Límite de resultados a obtener
-            const offset = (xpage - 1) * limit; // Cálculo del offset para la API
+            const limit = 15; // Límite de resultados por página
+            const offset = (xpage - 1) * limit; // Offset calculado
 
             try {
-                const apiPoke = await axios.get(`${URL_POKEMON}/?offset=${offset}&limit=${limit}`); // Petición a la API
+                const apiPoke = await axios.get(`${URL_POKEMON}/?offset=${offset}&limit=${limit}`);
                 setArrayPokemon(apiPoke.data.results || []); // Guardamos los resultados o un array vacío
             } catch (error) {
-                console.error("Error al obtener los datos de la API:", error); // Manejo de errores
+                console.error("Error al obtener los datos de la API:", error);
             }
         };
 
         fetchPokemonData();
-    }, [xpage]); // El efecto se ejecuta cuando cambia `xpage`
+    }, [xpage]); // Efecto dependiente de `xpage`
+
+    // Función para manejar el texto de búsqueda
+    const obtenerSearch = (e) => {
+        const texto = e.toLowerCase(); // Convertimos a minúsculas
+        setSearch(texto);
+        setXpage(1); // Reiniciamos a la página 1 al buscar
+    };
+
+    // Filtramos los Pokémon según el texto de búsqueda
+    const filteredPokemons = search
+        ? arrayPokemon.filter((pokemon) => pokemon.name.toLowerCase().includes(search))
+        : arrayPokemon;
 
     // Funciones para cambiar de página
-    const nextPage = () => setXpage((prev) => prev + 1); // Ir a la siguiente página
-    const prevPage = () => setXpage((prev) => (prev > 1 ? prev - 1 : prev)); // Ir a la página anterior, sin ir más atrás de la página 1
+    const nextPage = () => setXpage((prev) => prev + 1);
+    const prevPage = () => setXpage((prev) => (prev > 1 ? prev - 1 : prev));
 
     return (
         <div className={css.layout}>
-            <Header /> {/* Componente del encabezado */}
-
+            <Header obtenerSearch={obtenerSearch} /> {/* Componente del encabezado con búsqueda */}
 
             {/* Contenedor de las tarjetas de Pokémon */}
             <div className={css.card_content}>
-                {arrayPokemon.length > 0 ? (
-                    arrayPokemon.map((card, index) => (
+                {filteredPokemons.length > 0 ? (
+                    filteredPokemons.map((card, index) => (
                         <Card key={index} card={card} /> // Renderizamos cada tarjeta
                     ))
                 ) : (
@@ -54,6 +65,12 @@ export default function LayoutHome() {
                 <span>Página {xpage}</span>
                 <button onClick={nextPage}>Siguiente</button>
             </section>
+
+            <div className={css.card_content}>
+                {filteredPokemons.map((card, index) => {
+                    return <Card key={index} card={card} />;
+                })}
+            </div>
         </div>
     );
 }
